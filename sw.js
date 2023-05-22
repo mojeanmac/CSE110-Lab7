@@ -38,18 +38,12 @@ self.addEventListener('fetch', function (event) {
   //            Otherwise fetch the resource, add it to the cache, and return
   //            network response.
 
-  event.respondWith(caches.open(CACHE_NAME)).then((cache) => {
-      // Go to the cache first
-      return cache.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        return fetch(event.request).then((fetchedResponse) => {
-          cache.put(event.request, fetchedResponse.clone());
-          return fetchedResponse;
-        });
-      });
-  })
-
+  event.respondWith(caches.open(CACHE_NAME).then((cache) => {
+    return cache.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request, {mode: 'no-cors'}).then((fetchedResponse) => {
+        cache.put(event.request, fetchedResponse.clone());
+        return fetchedResponse;
+      })
+    })
+  }));
 });
